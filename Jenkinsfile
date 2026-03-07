@@ -116,30 +116,33 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {  // Name configured in Jenkins
-                    sh '''
-                        echo "=== Running SonarQube Scanner ==="
-                        sonar-scanner \
-                            -Dsonar.projectKey=cryptotracker \
-                            -Dsonar.sources=sample-app/ \
-                            -Dsonar.tests=sample-app/internal/service/ \
-                            -Dsonar.test.inclusions=**/*_test.go \
-                            -Dsonar.go.coverage.reportPaths=coverage.out \
-                            -Dsonar.python.version=3
-                    '''
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+        // SonarQube stages require the SonarQube Scanner plugin.
+        // Install it from: Manage Jenkins > Plugins > Available > "SonarQube Scanner"
+        // Then configure: Manage Jenkins > System > SonarQube > add server URL + token
+        //
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('SonarQube') {
+        //             sh '''
+        //                 sonar-scanner \
+        //                     -Dsonar.projectKey=cryptotracker \
+        //                     -Dsonar.sources=sample-app/ \
+        //                     -Dsonar.tests=sample-app/internal/service/ \
+        //                     -Dsonar.test.inclusions=**/*_test.go \
+        //                     -Dsonar.go.coverage.reportPaths=coverage.out \
+        //                     -Dsonar.python.version=3
+        //             '''
+        //         }
+        //     }
+        // }
+        //
+        // stage('Quality Gate') {
+        //     steps {
+        //         timeout(time: 5, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
 
         stage('Archive') {
             steps {
