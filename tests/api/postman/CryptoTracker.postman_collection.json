@@ -1,0 +1,539 @@
+{
+	"info": {
+		"name": "CryptoTracker API Tests",
+		"description": "Complete API test collection for CryptoTracker v1.0.\n\nCovers all 7 endpoints with positive and negative test cases.\n\nRun with: newman run CryptoTracker.postman_collection.json -e CryptoTracker.postman_environment.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "test_username",
+			"value": ""
+		},
+		{
+			"key": "portfolio_item_id",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has healthy status', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.status).to.eql('healthy');",
+									"    pm.expect(data.app).to.eql('CryptoTracker');",
+									"});",
+									"",
+									"pm.test('Content-Type is JSON', function () {",
+									"    pm.response.to.have.header('Content-Type', /application\\/json/);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/health"
+					}
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register - Success",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var username = 'postman_' + Math.random().toString(36).substring(7);",
+									"pm.collectionVariables.set('test_username', username);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Success message returned', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.message).to.eql('user registered successfully');",
+									"});",
+									"",
+									"pm.test('No password in response', function () {",
+									"    pm.expect(pm.response.text()).to.not.include('password');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/register",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\": \"{{test_username}}\", \"password\": \"testpass123\"}"
+						}
+					}
+				},
+				{
+					"name": "Register - Short Username (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message about username length', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.error).to.include('username must be at least 3 characters');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/register",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\": \"ab\", \"password\": \"secure123\"}"
+						}
+					}
+				},
+				{
+					"name": "Register - Short Password (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message about password length', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.error).to.include('password must be at least 6 characters');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/register",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\": \"validuser\", \"password\": \"abc\"}"
+						}
+					}
+				},
+				{
+					"name": "Login - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Token is returned', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.token).to.be.a('string');",
+									"    pm.expect(data.token.length).to.be.above(0);",
+									"    pm.collectionVariables.set('token', data.token);",
+									"});",
+									"",
+									"pm.test('Login message returned', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.message).to.eql('login successful');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/login",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\": \"{{test_username}}\", \"password\": \"testpass123\"}"
+						}
+					}
+				},
+				{
+					"name": "Login - Wrong Password (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Generic error message', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.error).to.eql('invalid credentials');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/login",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\": \"{{test_username}}\", \"password\": \"wrongpassword\"}"
+						}
+					}
+				},
+				{
+					"name": "Portfolio - No Auth (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Auth required message', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.error).to.include('authorization header required');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/portfolio"
+					}
+				}
+			]
+		},
+		{
+			"name": "Portfolio",
+			"item": [
+				{
+					"name": "Add BTC to Portfolio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has correct fields', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data.symbol).to.eql('BTC');",
+									"    pm.expect(data.amount).to.eql(0.5);",
+									"    pm.expect(data).to.have.property('id');",
+									"    pm.collectionVariables.set('portfolio_item_id', data.id);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/portfolio",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"symbol\": \"BTC\", \"amount\": 0.5}"
+						}
+					}
+				},
+				{
+					"name": "Add with lowercase symbol (auto-uppercase)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Symbol is uppercase', function () {",
+									"    pm.expect(pm.response.json().symbol).to.eql('ETH');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/portfolio",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"symbol\": \"eth\", \"amount\": 10}"
+						}
+					}
+				},
+				{
+					"name": "Add with zero amount (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error about positive amount', function () {",
+									"    pm.expect(pm.response.json().error).to.include('amount must be positive');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/portfolio",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"symbol\": \"BTC\", \"amount\": 0}"
+						}
+					}
+				},
+				{
+					"name": "Get Portfolio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array with items', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data).to.be.an('array');",
+									"    pm.expect(data.length).to.be.above(0);",
+									"});",
+									"",
+									"pm.test('Items have required fields', function () {",
+									"    var item = pm.response.json()[0];",
+									"    pm.expect(item).to.have.property('id');",
+									"    pm.expect(item).to.have.property('symbol');",
+									"    pm.expect(item).to.have.property('amount');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/portfolio",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Delete Portfolio Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Item deleted message', function () {",
+									"    pm.expect(pm.response.json().message).to.eql('item deleted');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/portfolio/{{portfolio_item_id}}",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Delete Non-existent Item (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Item not found error', function () {",
+									"    pm.expect(pm.response.json().error).to.include('item not found');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/portfolio/99999",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Prices",
+			"item": [
+				{
+					"name": "Get Prices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is array with prices', function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data).to.be.an('array');",
+									"    pm.expect(data.length).to.be.above(0);",
+									"});",
+									"",
+									"pm.test('Prices have required fields', function () {",
+									"    var item = pm.response.json()[0];",
+									"    pm.expect(item).to.have.property('symbol');",
+									"    pm.expect(item).to.have.property('price');",
+									"    pm.expect(item).to.have.property('change_24h');",
+									"});",
+									"",
+									"pm.test('BTC and ETH are present', function () {",
+									"    var symbols = pm.response.json().map(i => i.symbol);",
+									"    pm.expect(symbols).to.include('BTC');",
+									"    pm.expect(symbols).to.include('ETH');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/prices"
+					}
+				}
+			]
+		}
+	]
+}

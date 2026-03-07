@@ -1,0 +1,147 @@
+/*
+ * Jenkins Declarative Pipeline for CryptoTracker.
+ *
+ * Stages:
+ *   1. Checkout       — pull source from Git
+ *   2. Build          — compile Go binary
+ *   3. Unit Tests     — run Go tests
+ *   4. API Tests      — start server, run Pytest
+ *   5. SonarQube      — static code analysis
+ *   6. Archive        — save binary as build artifact
+ *
+ * Requirements:
+ *   - Jenkins plugins: Pipeline, Git, SonarQube Scanner
+ *   - Tools on agent: Go 1.21+, Python 3.10+, pip, gcc (for CGO/SQLite)
+ *   - SonarQube server configured in Jenkins > Manage > System > SonarQube
+ */
+
+pipeline {
+    agent any
+
+    environment {
+        GO111MODULE = 'on'
+        CGO_ENABLED = '1'
+        SONAR_HOST  = 'http://sonarqube:9000'
+    }
+
+    tools {
+        go 'go-1.22'   // Configured in Jenkins > Manage > Tools > Go
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh '''
+                    echo "=== Building CryptoTracker ==="
+                    go build -o bin/cryptotracker ./sample-app/cmd/server/
+                    ls -la bin/cryptotracker
+                '''
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                sh '''
+                    echo "=== Running Go Tests ==="
+                    go test -v -coverprofile=coverage.out ./sample-app/internal/service/
+                    go tool cover -func=coverage.out
+                '''
+            }
+            post {
+                always {
+                    // Archive coverage report
+                    archiveArtifacts artifacts: 'coverage.out', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('API Tests') {
+            steps {
+                sh '''
+                    echo "=== Starting server ==="
+                    ./bin/cryptotracker &
+                    SERVER_PID=$!
+
+                    # Wait for server to be ready
+                    for i in $(seq 1 30); do
+                        curl -s http://localhost:8080/api/health && break
+                        sleep 1
+                    done
+
+                    echo "=== Installing Python dependencies ==="
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -q requests pytest
+
+                    echo "=== Running Pytest API Tests ==="
+                    pytest tests/api/python/ -v --tb=short --junitxml=pytest-results.xml
+
+                    echo "=== Running unittest Tests ==="
+                    python -m pytest tests/unittest/ -v --tb=short --junitxml=unittest-results.xml
+
+                    # Cleanup
+                    kill $SERVER_PID 2>/dev/null || true
+                    rm -f cryptotracker.db
+                '''
+            }
+            post {
+                always {
+                    junit '*-results.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {  // Name configured in Jenkins
+                    sh '''
+                        echo "=== Running SonarQube Scanner ==="
+                        sonar-scanner \
+                            -Dsonar.projectKey=cryptotracker \
+                            -Dsonar.sources=sample-app/ \
+                            -Dsonar.tests=sample-app/internal/service/ \
+                            -Dsonar.test.inclusions=**/*_test.go \
+                            -Dsonar.go.coverage.reportPaths=coverage.out \
+                            -Dsonar.python.version=3
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'bin/cryptotracker', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up any leftover server processes
+            sh 'pkill -f cryptotracker || true'
+            sh 'rm -f cryptotracker.db'
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check the logs above.'
+        }
+    }
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTracker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>CryptoTracker</h1>
+
+        <!-- Auth Section -->
+        <div id="auth-section">
+            <h2>Login / Register</h2>
+            <form id="auth-form">
+                <input type="text" id="username" placeholder="Username" required minlength="3">
+                <input type="password" id="password" placeholder="Password" required minlength="6">
+                <div class="btn-group">
+                    <button type="button" id="login-btn" onclick="login()">Login</button>
+                    <button type="button" id="register-btn" onclick="register()">Register</button>
+                </div>
+            </form>
+            <p id="auth-message" class="message"></p>
+        </div>
+
+        <!-- Dashboard Section (shown after login) -->
+        <div id="dashboard-section" style="display:none;">
+            <div class="header-row">
+                <h2>Dashboard</h2>
+                <button id="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Prices -->
+            <h3>Market Prices</h3>
+            <table id="prices-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Price (USD)</th>
+                        <th>24h Change</th>
+                    </tr>
+                </thead>
+                <tbody id="prices-body"></tbody>
+            </table>
+
+            <!-- Portfolio -->
+            <h3>My Portfolio</h3>
+            <form id="add-form">
+                <input type="text" id="symbol" placeholder="Symbol (e.g. BTC)" required>
+                <input type="number" id="amount" placeholder="Amount" step="any" min="0.00000001" required>
+                <button type="button" id="add-btn" onclick="addToPortfolio()">Add</button>
+            </form>
+            <table id="portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolio-body"></tbody>
+            </table>
+            <p id="dashboard-message" class="message"></p>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
