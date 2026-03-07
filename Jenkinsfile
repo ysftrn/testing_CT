@@ -20,8 +20,9 @@ pipeline {
     environment {
         GO111MODULE = 'on'
         CGO_ENABLED = '1'
-        GOROOT      = '/usr/local/go'
-        PATH        = "/usr/local/go/bin:${env.PATH}"
+        GOROOT      = "${WORKSPACE}/.go"
+        GOPATH      = "${WORKSPACE}/.gopath"
+        PATH        = "${WORKSPACE}/.go/bin:${WORKSPACE}/.gopath/bin:${env.PATH}"
         SONAR_HOST  = 'http://sonarqube:9000'
     }
 
@@ -36,10 +37,12 @@ pipeline {
         stage('Setup Go') {
             steps {
                 sh '''
-                    if ! command -v go &> /dev/null; then
-                        echo "=== Installing Go ==="
-                        apt-get update -qq && apt-get install -y -qq curl gcc > /dev/null 2>&1
-                        curl -sL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz | tar -C /usr/local -xz
+                    if [ ! -f "$GOROOT/bin/go" ]; then
+                        echo "=== Installing Go to workspace ==="
+                        mkdir -p "$GOROOT"
+                        curl -sL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz | tar -C "$WORKSPACE" -xz
+                        mv "$WORKSPACE/go"/* "$GOROOT/"
+                        rm -rf "$WORKSPACE/go"
                     fi
                     go version
                 '''
