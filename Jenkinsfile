@@ -20,9 +20,11 @@ pipeline {
     environment {
         GO111MODULE = 'on'
         CGO_ENABLED = '1'
-        GOROOT      = "${WORKSPACE}/.go"
-        GOPATH      = "${WORKSPACE}/.gopath"
-        PATH        = "${WORKSPACE}/.go/bin:${WORKSPACE}/.gopath/bin:${env.PATH}"
+        GOROOT      = "${JENKINS_HOME}/.go"
+        GOPATH      = "${JENKINS_HOME}/.gopath"
+        GOCACHE     = "${JENKINS_HOME}/.cache/go-build"
+        GOMODCACHE  = "${JENKINS_HOME}/.gopath/pkg/mod"
+        PATH        = "${JENKINS_HOME}/.go/bin:${JENKINS_HOME}/.gopath/bin:${env.PATH}"
         SONAR_HOST  = 'http://sonarqube:9000'
     }
 
@@ -38,11 +40,12 @@ pipeline {
             steps {
                 sh '''
                     if [ ! -f "$GOROOT/bin/go" ]; then
-                        echo "=== Installing Go to workspace ==="
+                        echo "=== Installing Go ==="
                         mkdir -p "$GOROOT"
-                        curl -sL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz | tar -C "$WORKSPACE" -xz
-                        mv "$WORKSPACE/go"/* "$GOROOT/"
-                        rm -rf "$WORKSPACE/go"
+                        curl -sL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz -o /tmp/go.tar.gz
+                        tar -C "$JENKINS_HOME" -xzf /tmp/go.tar.gz
+                        mv "$JENKINS_HOME/go"/* "$GOROOT/"
+                        rm -rf "$JENKINS_HOME/go" /tmp/go.tar.gz
                     fi
                     go version
                     gcc --version | head -1
