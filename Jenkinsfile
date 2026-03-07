@@ -45,6 +45,8 @@ pipeline {
                         rm -rf "$WORKSPACE/go"
                     fi
                     go version
+                    gcc --version | head -1
+                    python3 --version
                 '''
             }
         }
