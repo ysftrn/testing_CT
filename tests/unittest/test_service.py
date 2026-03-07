@@ -12,13 +12,14 @@ Key differences from Pytest:
 """
 
 import json
+import os
 import random
 import string
 import unittest
 from urllib import request, error
 
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = os.environ.get("CRYPTOTRACKER_URL", "http://localhost:8080")
 
 
 def _random_username():

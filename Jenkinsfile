@@ -10,9 +10,8 @@
  *   6. Archive        — save binary as build artifact
  *
  * Requirements:
- *   - Jenkins plugins: Pipeline, Git, SonarQube Scanner
- *   - Tools on agent: Go 1.21+, Python 3.10+, pip, gcc (for CGO/SQLite)
- *   - SonarQube server configured in Jenkins > Manage > System > SonarQube
+ *   - Jenkins plugins: Pipeline, Git
+ *   - SonarQube server configured in Jenkins > Manage > System > SonarQube (optional)
  */
 
 pipeline {
@@ -21,11 +20,9 @@ pipeline {
     environment {
         GO111MODULE = 'on'
         CGO_ENABLED = '1'
+        GOROOT      = '/usr/local/go'
+        PATH        = "/usr/local/go/bin:${env.PATH}"
         SONAR_HOST  = 'http://sonarqube:9000'
-    }
-
-    tools {
-        go 'go-1.22'   // Configured in Jenkins > Manage > Tools > Go
     }
 
     stages {
@@ -33,6 +30,19 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Setup Go') {
+            steps {
+                sh '''
+                    if ! command -v go &> /dev/null; then
+                        echo "=== Installing Go ==="
+                        apt-get update -qq && apt-get install -y -qq curl gcc > /dev/null 2>&1
+                        curl -sL https://go.dev/dl/go1.24.1.linux-amd64.tar.gz | tar -C /usr/local -xz
+                    fi
+                    go version
+                '''
             }
         }
 

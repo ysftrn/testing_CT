@@ -9,6 +9,7 @@ Fixtures provide:
 Override browser with: pytest --browser=chrome|firefox|safari
 """
 
+import os
 import random
 import string
 import shutil
@@ -22,7 +23,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = os.environ.get("CRYPTOTRACKER_URL", "http://localhost:8080")
 
 
 def pytest_addoption(parser):

@@ -5,13 +5,14 @@ Fixtures are Pytest's way of providing reusable setup/teardown logic.
 Any test function can request a fixture by including it as a parameter.
 """
 
+import os
 import random
 import string
 
 import pytest
 import requests
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = os.environ.get("CRYPTOTRACKER_URL", "http://localhost:8080")
 
 
 @pytest.fixture(scope="session")

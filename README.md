@@ -116,6 +116,21 @@ Guides for each technique with definitions, CryptoTracker examples, and intervie
 | **Version Control** | Git, GitHub |
 | **Process** | SDLC (Agile/Scrum), STLC, MIL-STD-498, ISO 29119 |
 
+## Live Server
+
+CryptoTracker is deployed and publicly accessible for testing:
+
+| Service | URL |
+|---------|-----|
+| **CryptoTracker API** | `http://178.128.250.129:8080` |
+| **Jenkins** | `http://178.128.250.129:8081` |
+| **SonarQube** | `http://178.128.250.129:9000` |
+
+```bash
+# Quick test — hit the live health endpoint
+curl http://178.128.250.129:8080/api/health
+```
+
 ## Running the Application
 
 ```bash
@@ -137,8 +152,14 @@ make build
 
 ## Running Tests
 
+Tests default to `http://localhost:8080`. To run against the live server, set the `CRYPTOTRACKER_URL` environment variable:
+
 ```bash
-# Start the server (required for API, UI, and unittest tests)
+export CRYPTOTRACKER_URL=http://178.128.250.129:8080
+```
+
+```bash
+# Start the server (required for API, UI, and unittest tests — skip if using the live server)
 rm -f cryptotracker.db   # clean database
 ./server &
 
@@ -158,6 +179,9 @@ pytest tests/selenium/ -v --browser=firefox   # override browser
 
 # Postman collection (requires: npm install -g newman)
 newman run tests/api/postman/CryptoTracker.postman_collection.json
+
+# Performance tests against live server
+locust -f tests/performance/locust/locustfile.py --host=http://178.128.250.129:8080
 ```
 
 **Total automated tests:** 112 (Go 25 + Pytest 42 + unittest 22 + Selenium 23)
