@@ -47,16 +47,6 @@ Push to Git
 | **SonarQube** | Static code analysis | `ci-cd/sonarqube/sonar-project.properties` |
 | **Docker Compose** | Run Jenkins + SonarQube | `ci-cd/docker-compose.yml` |
 
-## Live Instances
-
-Jenkins and SonarQube are deployed on a Digital Ocean droplet alongside the CryptoTracker app:
-
-| Service | URL |
-|---------|-----|
-| **Jenkins** | http://178.128.250.129:8081 |
-| **SonarQube** | http://178.128.250.129:9000 (login: admin/admin) |
-| **CryptoTracker** | http://178.128.250.129:8080 |
-
 ## Quick Start (Docker)
 
 To run locally or on your own server:
@@ -76,13 +66,13 @@ docker compose up -d
    ```bash
    docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
    ```
-2. Open http://localhost:8081 (or http://178.128.250.129:8081 for the live server), paste the password
+2. Open http://localhost:8081, paste the password
 3. Install suggested plugins + Pipeline, Git, SonarQube Scanner
 4. Create a Pipeline job pointing to this repo's `Jenkinsfile`
 
 ### First-time SonarQube setup
 
-1. Open http://localhost:9000 (or http://178.128.250.129:9000 for the live server), login with admin/admin
+1. Open http://localhost:9000, login with admin/admin
 2. Change the default password when prompted
 3. Create a project: key = `cryptotracker`
 4. Generate a token → copy it

@@ -118,18 +118,14 @@ Guides for each technique with definitions, CryptoTracker examples, and intervie
 
 ## Live Server
 
-CryptoTracker is deployed and publicly accessible for testing:
-
-| Service | URL |
-|---------|-----|
-| **CryptoTracker API** | `http://178.128.250.129:8080` |
-| **Jenkins** | `http://178.128.250.129:8081` |
-| **SonarQube** | `http://178.128.250.129:9000` |
+CryptoTracker is deployed on a Digital Ocean droplet and publicly accessible for testing:
 
 ```bash
 # Quick test — hit the live health endpoint
 curl http://178.128.250.129:8080/api/health
 ```
+
+Jenkins and SonarQube are also running on the same server for CI/CD (not publicly listed for security).
 
 ## Running the Application
 
@@ -155,7 +151,7 @@ make build
 Tests default to `http://localhost:8080`. To run against the live server, set the `CRYPTOTRACKER_URL` environment variable:
 
 ```bash
-export CRYPTOTRACKER_URL=http://178.128.250.129:8080
+export CRYPTOTRACKER_URL=http://<server-ip>:8080
 ```
 
 ```bash
@@ -181,7 +177,7 @@ pytest tests/selenium/ -v --browser=firefox   # override browser
 newman run tests/api/postman/CryptoTracker.postman_collection.json
 
 # Performance tests against live server
-locust -f tests/performance/locust/locustfile.py --host=http://178.128.250.129:8080
+locust -f tests/performance/locust/locustfile.py --host=http://<server-ip>:8080
 ```
 
 **Total automated tests:** 112 (Go 25 + Pytest 42 + unittest 22 + Selenium 23)

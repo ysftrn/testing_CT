@@ -108,15 +108,6 @@ curl http://localhost:8080/api/prices
 | Symbol | Required, auto-converted to uppercase |
 | Amount | Must be a positive number |
 
-## Live Server
-
-The app is deployed and publicly accessible at **http://178.128.250.129:8080**
-
-```bash
-curl http://178.128.250.129:8080/api/health
-# {"app":"CryptoTracker","status":"healthy"}
-```
-
 ## Running Locally
 
 ```bash
