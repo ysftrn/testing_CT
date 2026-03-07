@@ -83,13 +83,13 @@ pipeline {
         stage('API Tests') {
             steps {
                 sh '''
-                    echo "=== Starting server ==="
-                    ./bin/cryptotracker &
+                    echo "=== Starting server on port 9090 (8080 is used by Jenkins) ==="
+                    PORT=9090 ./bin/cryptotracker &
                     SERVER_PID=$!
 
                     # Wait for server to be ready
                     for i in $(seq 1 30); do
-                        curl -s http://localhost:8080/api/health && break
+                        curl -s http://localhost:9090/api/health && break
                         sleep 1
                     done
 
@@ -99,10 +99,10 @@ pipeline {
                     pip install -q requests pytest
 
                     echo "=== Running Pytest API Tests ==="
-                    pytest tests/api/python/ -v --tb=short --junitxml=pytest-results.xml
+                    CRYPTOTRACKER_URL=http://localhost:9090 pytest tests/api/python/ -v --tb=short --junitxml=pytest-results.xml
 
                     echo "=== Running unittest Tests ==="
-                    python -m pytest tests/unittest/ -v --tb=short --junitxml=unittest-results.xml
+                    CRYPTOTRACKER_URL=http://localhost:9090 python -m pytest tests/unittest/ -v --tb=short --junitxml=unittest-results.xml
 
                     # Cleanup
                     kill $SERVER_PID 2>/dev/null || true
