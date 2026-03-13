@@ -122,7 +122,7 @@ CryptoTracker is deployed on a Digital Ocean droplet and publicly accessible for
 
 ```bash
 # Quick test — hit the live health endpoint
-curl http://178.128.250.129:8080/api/health
+curl localhost:8080/api/health
 ```
 
 Jenkins and SonarQube are also running on the same server for CI/CD (not publicly listed for security).
