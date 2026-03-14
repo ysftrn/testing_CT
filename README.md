@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.png" alt="Software Testing Portfolio Banner" width="800">
+</p>
+
 # Software Testing Portfolio
 
 A comprehensive software testing portfolio demonstrating testing methodologies, tools, documentation, and automation skills. Built around **CryptoTracker** — a Go-based cryptocurrency portfolio tracker used as the System Under Test (SUT).
